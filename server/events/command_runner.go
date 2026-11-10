@@ -482,8 +482,6 @@ func (c *DefaultCommandRunner) RunCommentCommand(baseRepo models.Repo, maybeHead
 	if cmd != nil {
 		scope = scope.SubScope(cmd.Name.String())
 	}
-	timer := scope.Timer(metrics.ExecutionTimeMetric).Start()
-	defer timer.Stop()
 
 	headRepo, pull, err := c.ensureValidRepoMetadata(baseRepo, maybeHeadRepo, maybePull, user, pullNum, log)
 	if err != nil {

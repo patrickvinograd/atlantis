@@ -1195,17 +1195,18 @@ func TestPlanCommandRunner_PersistenceBeforePublication(t *testing.T) {
 				vcsClient := setup(t, func(tc *TestConfig) {
 					tc.database = database
 					tc.planRunnerWrapper = func(r events.ProjectCommandRunner) events.ProjectPlanCommandRunner {
-						return events.NewInstrumentedProjectCommandRunner(metricstest.NewLoggingScope(t, logging.NewNoopLogger(t), "atlantis"), &events.ProjectOutputWrapper{ProjectCommandRunner: r, JobURLSetter: setter, JobMessageSender: messages})
+						return events.NewInstrumentedProjectCommandRunner(&events.ProjectOutputWrapper{ProjectCommandRunner: r, JobURLSetter: setter, JobMessageSender: messages})
 					}
 				})
-				ctx := &command.Context{Log: logging.NewNoopLogger(t), Pull: testdata.Pull, HeadRepo: testdata.GithubRepo, Scope: metricstest.NewLoggingScope(t, logging.NewNoopLogger(t), "atlantis")}
+				scope := metricstest.NewLoggingScope(t, logging.NewNoopLogger(t), "atlantis")
+				ctx := &command.Context{Log: logging.NewNoopLogger(t), Pull: testdata.Pull, HeadRepo: testdata.GithubRepo, Scope: scope}
 				if auto {
 					ctx.Trigger = command.AutoTrigger
 				} else {
 					ctx.Trigger = command.CommentTrigger
 				}
 				cmd := &events.CommentCommand{Name: command.Plan, RepoRelDir: "project"}
-				project := command.ProjectContext{CommandName: command.Plan, RepoRelDir: "project", Workspace: "default", Log: ctx.Log}
+				project := command.ProjectContext{CommandName: command.Plan, RepoRelDir: "project", Workspace: "default", Log: ctx.Log, Scope: scope.SubScope("test_plan")}
 				When(projectCommandBuilder.BuildPlanCommands(ctx, cmd)).ThenReturn([]command.ProjectContext{project}, nil)
 				When(projectCommandBuilder.BuildAutoplanCommands(ctx)).ThenReturn([]command.ProjectContext{project}, nil)
 				When(projectCommandRunner.Plan(Any[command.ProjectContext]())).ThenReturn(command.ProjectCommandOutput{PlanSuccess: &models.PlanSuccess{}})

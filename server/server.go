@@ -876,7 +876,6 @@ func NewServer(userConfig UserConfig, config Config) (*Server, error) {
 		JobURLSetter:         jobs.NewJobURLSetter(router, commitStatusUpdater),
 	}
 	instrumentedProjectCmdRunner := events.NewInstrumentedProjectCommandRunner(
-		statsScope,
 		projectOutputWrapper,
 	)
 

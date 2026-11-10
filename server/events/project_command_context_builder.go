@@ -13,6 +13,7 @@ import (
 	"github.com/runatlantis/atlantis/server/core/terraform/tfclient"
 	"github.com/runatlantis/atlantis/server/events/command"
 	"github.com/runatlantis/atlantis/server/events/models"
+	"github.com/runatlantis/atlantis/server/metrics"
 	tally "github.com/uber-go/tally/v4"
 )
 
@@ -80,6 +81,9 @@ func (cb *CommandScopedStatsProjectCommandContextBuilder) BuildProjectContext(
 		// since we can return multiple commands worth of contexts for a given command name arg
 		// to effectively pipeline them.
 		cmd.Scope = cmd.SetProjectScopeTags(cmd.Scope)
+		for _, m := range []string{metrics.ExecutionSuccessMetric, metrics.ExecutionErrorMetric, metrics.ExecutionFailureMetric} {
+			metrics.InitCounter(cmd.Scope, m)
+		}
 		projectCmds = append(projectCmds, cmd)
 	}
 
